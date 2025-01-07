@@ -86,7 +86,7 @@ jobs:
         configuration: [Debug, Release]
 
     env:
-      Solution_Name: Rookie.sln
+      Solution_Name: AndroidSideloader.sln
       Test_Project_Path: Rookie.Tests/Rookie.Tests.csproj
 
     steps:
