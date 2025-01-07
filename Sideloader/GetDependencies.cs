@@ -77,30 +77,44 @@ namespace AndroidSideloader
                     _ = Logger.Log($"Missing 'Sideloader Launcher.exe'. Attempting to download from {currentAccessedWebsite}");
                     client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/Sideloader%20Launcher.exe", "Sideloader Launcher.exe");
                     _ = Logger.Log($"'Sideloader Launcher.exe' download successful");
-                }
+                #if WINDOWS
+                                if (!File.Exists("Rookie Offline.cmd"))
+                                {
+                                    currentAccessedWebsite = "github";
+                                    _ = Logger.Log($"Missing 'Rookie Offline.cmd'. Attempting to download from {currentAccessedWebsite}");
+                                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/Rookie%20Offline.cmd", "Rookie Offline.cmd");
+                                    _ = Logger.Log($"'Rookie Offline.cmd' download successful");
+                                }
 
-                if (!File.Exists("Rookie Offline.cmd"))
-                {
-                    currentAccessedWebsite = "github";
-                    _ = Logger.Log($"Missing 'Rookie Offline.cmd'. Attempting to download from {currentAccessedWebsite}");
-                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/Rookie%20Offline.cmd", "Rookie Offline.cmd");
-                    _ = Logger.Log($"'Rookie Offline.cmd' download successful");
-                }
+                                if (!File.Exists("CleanupInstall.cmd"))
+                                {
+                                    currentAccessedWebsite = "github";
+                                    _ = Logger.Log($"Missing 'CleanupInstall.cmd'. Attempting to download from {currentAccessedWebsite}");
+                                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/CleanupInstall.cmd", "CleanupInstall.cmd");
+                                    _ = Logger.Log($"'CleanupInstall.cmd' download successful");
+                                }
 
-                if (!File.Exists("CleanupInstall.cmd"))
-                {
-                    currentAccessedWebsite = "github";
-                    _ = Logger.Log($"Missing 'CleanupInstall.cmd'. Attempting to download from {currentAccessedWebsite}");
-                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/CleanupInstall.cmd", "CleanupInstall.cmd");
-                    _ = Logger.Log($"'CleanupInstall.cmd' download successful");
-                }
+                                currentAccessedWebsite = "github";
+                                        _ = Logger.Log($"Missing 'AddDefenderExceptions.ps1'. Attempting to download from {currentAccessedWebsite}");
+                                        client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/AddDefenderExceptions.ps1", "AddDefenderExceptions.ps1");
+                                        _ = Logger.Log($"'AddDefenderExceptions.ps1' download successful");
+                #elif LINUX
+                                if (!File.Exists("Rookie Offline.sh"))
+                                {
+                                    currentAccessedWebsite = "github";
+                                    _ = Logger.Log($"Missing 'Rookie Offline.sh'. Attempting to download from {currentAccessedWebsite}");
+                                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/Rookie%20Offline.sh", "Rookie Offline.sh");
+                                    _ = Logger.Log($"'Rookie Offline.sh' download successful");
+                                }
 
-                if (!File.Exists("AddDefenderExceptions.ps1"))
-                {
-                    currentAccessedWebsite = "github";
-                    _ = Logger.Log($"Missing 'AddDefenderExceptions.ps1'. Attempting to download from {currentAccessedWebsite}");
-                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/AddDefenderExceptions.ps1", "AddDefenderExceptions.ps1");
-                    _ = Logger.Log($"'AddDefenderExceptions.ps1' download successful");
+                                if (!File.Exists("CleanupInstall.sh"))
+                                {
+                                    currentAccessedWebsite = "github";
+                                    _ = Logger.Log($"Missing 'CleanupInstall.sh'. Attempting to download from {currentAccessedWebsite}");
+                                    client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/CleanupInstall.sh", "CleanupInstall.sh");
+                                    _ = Logger.Log($"'CleanupInstall.sh' download successful");
+                                }
+                #endif
                 }
             }
             catch (Exception ex)

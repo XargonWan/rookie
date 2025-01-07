@@ -18,5 +18,5 @@ IF EXIST "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Curren
     exit /b 1
 )
 
-echo Building in %CONFIG% configuration...
-%MSBUILD% AndroidSideloader.sln /t:AndroidSideloader /p:Configuration=%CONFIG%
+echo Building in %CONFIG% configuration for WINDOWS...
+%MSBUILD% AndroidSideloader.sln /t:AndroidSideloader /p:Configuration=%CONFIG% /p:DefineConstants="WINDOWS"
