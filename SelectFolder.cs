@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using System.Windows.Forms;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 
 namespace AndroidSideloader
 {
@@ -33,9 +36,18 @@ namespace AndroidSideloader
         /// <returns>true if the user clicks OK</returns>
         public bool Show(IntPtr hWndOwner)
         {
-            ShowDialogResult result = Environment.OSVersion.Version.Major >= 6
-                ? VistaDialog.Show(hWndOwner, InitialDirectory, Title)
-                : ShowXpDialog(hWndOwner, InitialDirectory, Title);
+            ShowDialogResult result;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                #if WINDOWS
+                                result = Environment.OSVersion.Version.Major >= 6
+                                    ? VistaDialog.Show(hWndOwner, InitialDirectory, Title)
+                                    : ShowXpDialog(hWndOwner, InitialDirectory, Title);
+                #elif LINUX
+                                result = ShowLinuxDialog(InitialDirectory, Title);
+                #else
+                                throw new PlatformNotSupportedException("This platform is not supported.");
+                #endif
             FileName = result.FileName;
             return result.Result;
         }
@@ -62,6 +74,49 @@ namespace AndroidSideloader
             }
             return dialogResult;
         }
+
+        #if LINUX
+        private static ShowDialogResult ShowLinuxDialog(string initialDirectory, string title)
+        {
+            // Using Zenity to show a folder selection dialog on Linux
+            ShowDialogResult dialogResult = new ShowDialogResult();
+            try
+            {
+                string args = $"--file-selection --directory --title=\"{title}\" --filename=\"{initialDirectory}\"";
+                System.Diagnostics.Process process = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "zenity",
+                        Arguments = args,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+                process.Start();
+                string result = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit();
+
+                if (process.ExitCode == 0 && !string.IsNullOrEmpty(result))
+                {
+                    dialogResult.Result = true;
+                    dialogResult.FileName = result;
+                }
+                else
+                {
+                    dialogResult.Result = false;
+                    dialogResult.FileName = "";
+                }
+            }
+            catch (Exception)
+            {
+                dialogResult.Result = false;
+                dialogResult.FileName = "";
+            }
+            return dialogResult;
+        }
+        #endif
 
         private static class VistaDialog
         {

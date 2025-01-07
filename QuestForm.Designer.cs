@@ -59,8 +59,15 @@ namespace AndroidSideloader
             // 
             this.label1.AutoSize = true;
             this.label1.BackColor = System.Drawing.Color.Transparent;
+#if WINDOWS
+            // Windows-specific settings
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.LightCyan;
+#elif LINUX
+            // Linux-specific settings
+            this.label1.Font = new System.Drawing.Font("DejaVu Sans", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.LightGreen;
+#endif
             this.label1.Location = new System.Drawing.Point(72, 276);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(165, 20);

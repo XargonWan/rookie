@@ -3,6 +3,9 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 
 namespace AndroidSideloader
 {
@@ -58,7 +61,12 @@ namespace AndroidSideloader
                      ControlStyles.UserPaint, true);
             BackColor = Color.Transparent;
             ForeColor = Color.Black;
+
+#if LINUX
+            Font = new System.Drawing.Font("DejaVu Sans", 10, FontStyle.Bold);
+#else
             Font = new System.Drawing.Font("Comic Sans MS", 10, FontStyle.Bold);
+#endif
             state = MouseState.Leave;
             Transparency = false;
         }
@@ -74,7 +82,13 @@ namespace AndroidSideloader
             #endregion
 
             #region Drawing
+
+#if LINUX
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+#else
             e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+#endif
+
             roundedRect = new RoundedRectangleF(Width, Height, radius);
             e.Graphics.FillRectangle(Brushes.Transparent, ClientRectangle);
 

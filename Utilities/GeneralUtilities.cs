@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using System.Windows.Forms;
 
@@ -24,13 +27,21 @@ namespace AndroidSideloader.Utilities
 
         public static void ExecuteCommand(string command)
         {
-            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + command)
-            {
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            };
+            #if WINDOWS
+                        string shell = "cmd.exe";
+                        string shellArgs = "/c " + command;
+            #elif LINUX
+                        string shell = "/bin/bash";
+                        string shellArgs = "-c \"" + command + "\"";
+            #endif
+
+                        ProcessStartInfo processInfo = new ProcessStartInfo(shell, shellArgs)
+                        {
+                            CreateNoWindow = true,
+                            UseShellExecute = false,
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true
+                        };
 
             Process process = Process.Start(processInfo);
 
@@ -49,12 +60,20 @@ namespace AndroidSideloader.Utilities
 
         public static void Melt()
         {
+            #if WINDOWS
+                        string shell = "cmd.exe";
+                        string shellArgs = "/C choice /C Y /N /D Y /T 5 & Del \"" + Application.ExecutablePath + "\"";
+            #elif LINUX
+                        string shell = "/bin/bash";
+                        string shellArgs = "-c \"sleep 5 && rm -f '" + Application.ExecutablePath + "'\"";
+            #endif
+
             _ = Process.Start(new ProcessStartInfo()
             {
-                Arguments = "/C choice /C Y /N /D Y /T 5 & Del \"" + Application.ExecutablePath + "\"",
+                Arguments = shellArgs,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
-                FileName = "cmd.exe"
+                FileName = shell
             });
             Environment.Exit(0);
         }
@@ -78,7 +97,11 @@ namespace AndroidSideloader.Utilities
         {
             _ = Logger.Log($"Ran process {process} with command {command} in path {path}");
             Process cmd = new Process();
+#if WINDOWS
             cmd.StartInfo.FileName = "cmd.exe";
+#elif LINUX
+            cmd.StartInfo.FileName = "/bin/bash";
+#endif
             cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
             cmd.StartInfo.RedirectStandardError = true;

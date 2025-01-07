@@ -1,5 +1,9 @@
 ﻿using System.Collections;
+#if WINDOWS
 using System.Windows.Forms;
+#elif LINUX
+using Gtk;
+#endif
 
 /// <summary>
 /// A custom comparer for sorting ListView columns, implementing the 'IComparer' interface.
@@ -38,8 +42,15 @@ public class ListViewColumnSorter : IComparer
     public int Compare(object x, object y)
     {
         int compareResult;
+#if WINDOWS
         ListViewItem listviewX = (ListViewItem)x;
         ListViewItem listviewY = (ListViewItem)y;
+#elif LINUX
+        TreeIter iterX = (TreeIter)x;
+        TreeIter iterY = (TreeIter)y;
+        string listviewX = (string)listStore.GetValue(iterX, SortColumn);
+        string listviewY = (string)listStore.GetValue(iterY, SortColumn);
+#endif
 
         // Determine if the column requires numeric comparison
         if (SortColumn == 3 || SortColumn == 5) // Numeric columns: VersionCodeIndex, VersionNameIndex
@@ -47,8 +58,8 @@ public class ListViewColumnSorter : IComparer
             try
             {
                 // Parse and compare numeric values directly
-                int xNum = ParseNumber(listviewX.SubItems[SortColumn].Text);
-                int yNum = ParseNumber(listviewY.SubItems[SortColumn].Text);
+                int xNum = ParseNumber(listviewX);
+                int yNum = ParseNumber(listviewY);
 
                 // Compare numerically
                 compareResult = xNum.CompareTo(yNum);
@@ -56,13 +67,13 @@ public class ListViewColumnSorter : IComparer
             catch
             {
                 // Fallback to string comparison if parsing fails
-                compareResult = ObjectCompare.Compare(listviewX.SubItems[SortColumn].Text, listviewY.SubItems[SortColumn].Text);
+                compareResult = ObjectCompare.Compare(listviewX, listviewY);
             }
         }
         else
         {
             // Default to string comparison for non-numeric columns
-            compareResult = ObjectCompare.Compare(listviewX.SubItems[SortColumn].Text, listviewY.SubItems[SortColumn].Text);
+            compareResult = ObjectCompare.Compare(listviewX, listviewY);
         }
 
         // Determine the return value based on the specified sort order

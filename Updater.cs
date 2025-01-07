@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Threading.Tasks;
 
 namespace AndroidSideloader
@@ -60,10 +63,21 @@ namespace AndroidSideloader
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                     Logger.Log($"Downloading update from {GitHubUrl}/releases/download/v{currentVersion}/{AppName}.exe to {AppName} v{currentVersion}.exe");
-                    fileClient.DownloadFile($"{GitHubUrl}/releases/download/v{currentVersion}/{AppName}.exe", $"{AppName} v{currentVersion}.exe");
+                    string fileName = $"{AppName} v{currentVersion}";
+#if WINDOWS
+                    fileName += ".exe";
+#elif LINUX
+                    fileName += ".sh";
+#endif
+                    fileClient.DownloadFile($"{GitHubUrl}/releases/download/v{currentVersion}/{AppName}" + (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".exe" : ".sh"), fileName);
 
-                    Logger.Log($"Starting {AppName} v{currentVersion}.exe");
-                    Process.Start($"{AppName} v{currentVersion}.exe");
+                    Logger.Log($"Starting {fileName}");
+#if WINDOWS
+                    Process.Start(fileName);
+#elif LINUX
+                    Process.Start("chmod", $"+x {fileName}");
+                    Process.Start("/bin/bash", fileName);
+#endif
                 }
 
                 // Delete current version

@@ -48,5 +48,20 @@ namespace AndroidSideloader
             return uuid;
         }
 
+        public static string GetAppDataPath()
+        {
+#if WINDOWS
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "rookie");
+#elif LINUX
+            string xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+            if (string.IsNullOrEmpty(xdgDataHome))
+            {
+                xdgDataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "rookie");
+            }
+            return Path.Combine(xdgDataHome, "rookie");
+#else
+            throw new PlatformNotSupportedException("Unsupported OS");
+#endif
+        }
     }
 }

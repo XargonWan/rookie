@@ -1,5 +1,4 @@
-﻿
-namespace AndroidSideloader
+﻿namespace AndroidSideloader
 {
     partial class DonorsListViewForm
     {
@@ -52,6 +51,7 @@ namespace AndroidSideloader
             //
             // DonorsListView
             //
+#if WINDOWS
             this.DonorsListView.AccessibleRole = System.Windows.Forms.AccessibleRole.None;
             this.DonorsListView.BackColor = global::AndroidSideloader.Properties.Settings.Default.ComboBoxColor;
             this.DonorsListView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -84,6 +84,21 @@ namespace AndroidSideloader
             this.DonorsListView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DonorsListViewForm_MouseDown);
             this.DonorsListView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DonorsListViewForm_MouseMove);
             this.DonorsListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DonorsListViewForm_MouseUp);
+#else
+            // Linux-specific ListView initialization
+            this.DonorsListView = new System.Windows.Forms.ListView();
+            this.DonorsListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.GameNameIndex,
+            this.PackageNameIndex,
+            this.VersionCodeIndex,
+            this.UpdateOrNew});
+            this.DonorsListView.Location = new System.Drawing.Point(6, 6);
+            this.DonorsListView.Name = "DonorsListView";
+            this.DonorsListView.Size = new System.Drawing.Size(419, 219);
+            this.DonorsListView.TabIndex = 0;
+            this.DonorsListView.UseCompatibleStateImageBehavior = false;
+            this.DonorsListView.View = System.Windows.Forms.View.Details;
+#endif
             //
             // GameNameIndex
             //

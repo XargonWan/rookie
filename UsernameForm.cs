@@ -57,7 +57,17 @@ namespace AndroidSideloader
             foreach (string jsonFileName in userJsons)
             {
                 createUserJsonByName(username, jsonFileName);
-                _ = ADB.RunAdbCommandToString("push \"" + Environment.CurrentDirectory + $"\\{jsonFileName}\" " + " /sdcard/");
+                string currentDirectory = Environment.CurrentDirectory;
+                string filePath = Path.Combine(currentDirectory, jsonFileName);
+                string adbCommand;
+
+#if LINUX
+                adbCommand = $"push '{filePath}' /sdcard/";
+#elif WINDOWS
+                adbCommand = $"push \"{filePath}\" /sdcard/";
+#endif
+
+                _ = ADB.RunAdbCommandToString(adbCommand);
                 File.Delete(jsonFileName);
             }
 

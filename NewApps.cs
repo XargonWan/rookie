@@ -15,6 +15,7 @@ namespace AndroidSideloader
             InitializeComponent();
         }
 
+#if WINDOWS
         private void label2_MouseDown(object sender, MouseEventArgs e)
         {
             mouseDown = true;
@@ -36,6 +37,7 @@ namespace AndroidSideloader
         {
             mouseDown = false;
         }
+#endif
 
         private void DonateButton_Click(object sender, EventArgs e)
         {

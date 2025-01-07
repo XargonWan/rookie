@@ -10,6 +10,9 @@
 
 namespace AndroidSideloader.Properties {
     using System;
+    #if LINUX
+    using System.IO;
+    #endif
     
     
     /// <summary>
@@ -158,6 +161,22 @@ namespace AndroidSideloader.Properties {
                 object obj = ResourceManager.GetObject("splashimage_rclone", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
+        }
+
+        public static string GetAppDataPath() {
+            #if WINDOWS
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "rookie");
+            #elif LINUX
+                string xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                if (string.IsNullOrEmpty(xdgDataHome)) {
+                    xdgDataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "rookie");
+                } else {
+                    xdgDataHome = Path.Combine(xdgDataHome, "rookie");
+                }
+                return xdgDataHome;
+            #else
+                throw new PlatformNotSupportedException("Only Windows and Linux are supported.");
+            #endif
         }
     }
 }

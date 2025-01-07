@@ -8,6 +8,9 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Windows.Forms;
 using AndroidSideloader.Utilities;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 
 namespace AndroidSideloader
 {
@@ -19,29 +22,40 @@ namespace AndroidSideloader
 
         public static void killWebView2()
         {
-            var parentProcessId = Process.GetCurrentProcess().Id;
-            var processes = Process.GetProcessesByName("msedgewebview2");
-
-            foreach (var process in processes)
+#if WINDOWS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                try
-                {
-                    using (ManagementObject obj = new ManagementObject($"win32_process.handle='{process.Id}'"))
-                    {
-                        obj.Get();
-                        var ppid = Convert.ToInt32(obj["ParentProcessId"]);
+                var parentProcessId = Process.GetCurrentProcess().Id;
+                var processes = Process.GetProcessesByName("msedgewebview2");
 
-                        if (ppid == parentProcessId)
+                foreach (var process in processes)
+                {
+                    try
+                    {
+                        using (ManagementObject obj = new ManagementObject($"win32_process.handle='{process.Id}'"))
                         {
-                            process.Kill();
+                            obj.Get();
+                            var ppid = Convert.ToInt32(obj["ParentProcessId"]);
+
+                            if (ppid == parentProcessId)
+                            {
+                                process.Kill();
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _ = Logger.Log($"Exception occured while attempting to shut down WebView2 with exception message: {ex.Message}", LogLevel.ERROR);
+                    catch (Exception ex)
+                    {
+                        _ = Logger.Log($"Exception occured while attempting to shut down WebView2 with exception message: {ex.Message}", LogLevel.ERROR);
+                    }
                 }
             }
+#elif LINUX
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                // Implement Linux-specific logic if needed
+                _ = Logger.Log("killWebView2 is not supported on Linux.", LogLevel.WARNING);
+            }
+#endif
         }
 
         //push user.json to device (required for some devices like oculus quest)
@@ -50,7 +64,12 @@ namespace AndroidSideloader
             foreach (string userJson in UsernameForm.userJsons)
             {
                 UsernameForm.createUserJsonByName(Utilities.GeneralUtilities.randomString(16), userJson);
-                _ = ADB.RunAdbCommandToString("push \"" + Environment.CurrentDirectory + $"\\{userJson}\" " + " /sdcard/");
+                #if WINDOWS
+                                string command = $"push \"{Environment.CurrentDirectory}\\{userJson}\" /sdcard/";
+                #elif LINUX
+                                string command = $"push \"{Environment.CurrentDirectory}/{userJson}\" /sdcard/";
+                #endif
+                                _ = ADB.RunAdbCommandToString(command);
                 File.Delete(userJson);
             }
         }
@@ -221,26 +240,29 @@ namespace AndroidSideloader
             apkPath = apkPath.Remove(apkPath.Length - 1);
             apkPath = apkPath.Remove(0, 8); //remove package:
             apkPath = apkPath.Remove(apkPath.Length - 1);
-            if (File.Exists($"{settings.ADBFolder}\\base.apk"))
+            string baseApkPath = $"{settings.ADBFolder}{Path.DirectorySeparatorChar}base.apk";
+            string packageApkPath = $"{settings.MainDir}{Path.DirectorySeparatorChar}{packageName}{Path.DirectorySeparatorChar}{packageName}.apk";
+
+            if (File.Exists(baseApkPath))
             {
-                File.Delete($"{settings.ADBFolder}\\base.apk");
+                File.Delete(baseApkPath);
             }
 
-            if (File.Exists($"{settings.MainDir}\\{packageName}\\{packageName}.apk"))
+            if (File.Exists(packageApkPath))
             {
-                File.Delete($"{settings.MainDir}\\{packageName}\\{packageName}.apk");
+                File.Delete(packageApkPath);
             }
 
             output += ADB.RunAdbCommandToString("pull " + apkPath); //pull apk
 
-            if (Directory.Exists($"{settings.MainDir}\\{packageName}"))
+            if (Directory.Exists($"{settings.MainDir}{Path.DirectorySeparatorChar}{packageName}"))
             {
-                Directory.Delete($"{settings.MainDir}\\{packageName}", true);
+                Directory.Delete($"{settings.MainDir}{Path.DirectorySeparatorChar}{packageName}", true);
             }
 
-            _ = Directory.CreateDirectory($"{settings.MainDir}\\{packageName}");
+            _ = Directory.CreateDirectory($"{settings.MainDir}{Path.DirectorySeparatorChar}{packageName}");
 
-            File.Move($"{settings.ADBFolder}\\base.apk", $"{settings.MainDir}\\{packageName}\\{packageName}.apk");
+            File.Move(baseApkPath, packageApkPath);
             return output;
         }
 

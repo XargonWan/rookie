@@ -35,15 +35,20 @@ namespace AndroidSideloader.Utilities
         private static bool errorMessageShown = false;
         private static void DoExtract(string args)
         {
-            if (!File.Exists(Path.Combine(Environment.CurrentDirectory, "7z.exe")) || !File.Exists(Path.Combine(Environment.CurrentDirectory, "7z.dll")))
+#if WINDOWS
+            string exeName = "7z.exe";
+            string dllName = "7z.dll";
+            string downloadUrlBase = "https://github.com/VRPirates/rookie/raw/master/";
+
+            if (!File.Exists(Path.Combine(Environment.CurrentDirectory, exeName)) || !File.Exists(Path.Combine(Environment.CurrentDirectory, dllName)))
             {
                 _ = Logger.Log("Begin download 7-zip");
                 WebClient client = new WebClient();
                 string architecture = Environment.Is64BitOperatingSystem ? "64" : "";
                 try
                 {
-                    client.DownloadFile($"https://github.com/VRPirates/rookie/raw/master/7z{architecture}.exe", $"7z.exe");
-                    client.DownloadFile($"https://github.com/VRPirates/rookie/raw/master/7z{architecture}.dll", $"7z.dll");
+                    client.DownloadFile($"{downloadUrlBase}{exeName}", exeName);
+                    client.DownloadFile($"{downloadUrlBase}{dllName}", dllName);
                 }
                 catch (Exception ex)
                 {
@@ -53,11 +58,26 @@ namespace AndroidSideloader.Utilities
                 }
                 _ = Logger.Log("Complete download 7-zip");
             }
+#else
+            string exeName = "7z";
+            if (!File.Exists(Path.Combine(Environment.CurrentDirectory, exeName)))
+            {
+                ProcessStartInfo zenityInfo = new ProcessStartInfo
+                {
+                    FileName = "zenity",
+                    Arguments = "--error --text=\"7z is not installed. Please install it using your package manager.\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process.Start(zenityInfo)?.WaitForExit();
+                Application.Exit();
+            }
+#endif
 
             ProcessStartInfo pro = new ProcessStartInfo
             {
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = "7z.exe",
+                FileName = exeName,
                 Arguments = args,
                 CreateNoWindow = true,
                 UseShellExecute = false,

@@ -1,5 +1,4 @@
-﻿
-namespace AndroidSideloader
+﻿namespace AndroidSideloader
 {
     partial class SettingsForm
     {
@@ -40,8 +39,14 @@ namespace AndroidSideloader
             this.bmbfBox = new System.Windows.Forms.CheckBox();
             this.AutoReinstBox = new System.Windows.Forms.CheckBox();
             this.trailersOn = new System.Windows.Forms.CheckBox();
+#if WINDOWS
             this.downloadDirectorySetter = new System.Windows.Forms.FolderBrowserDialog();
             this.backupDirectorySetter = new System.Windows.Forms.FolderBrowserDialog();
+#else
+            string basePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "rookie");
+            this.downloadDirectorySetter = System.IO.Path.Combine(basePath, "downloads");
+            this.backupDirectorySetter = System.IO.Path.Combine(basePath, "backups");
+#endif
             this.chkSingleThread = new System.Windows.Forms.CheckBox();
             this.setBackupDirectory = new AndroidSideloader.RoundButton();
             this.setDownloadDirectory = new AndroidSideloader.RoundButton();
@@ -196,13 +201,12 @@ namespace AndroidSideloader
             this.trailersOn.UseVisualStyleBackColor = false;
             this.trailersOn.CheckedChanged += new System.EventHandler(this.trailersOn_CheckedChanged);
             // 
+#if WINDOWS
             // downloadDirectorySetter
-            // 
             this.downloadDirectorySetter.RootFolder = System.Environment.SpecialFolder.MyComputer;
-            // 
             // backupDirectorySetter
-            // 
             this.backupDirectorySetter.RootFolder = System.Environment.SpecialFolder.MyComputer;
+#endif
             // 
             // chkSingleThread
             // 
@@ -555,10 +559,13 @@ namespace AndroidSideloader
         private RoundButton btnUploadDebug;
         private RoundButton btnOpenDebug;
         private System.Windows.Forms.CheckBox trailersOn;
-        private RoundButton setDownloadDirectory;
+#if WINDOWS
         private System.Windows.Forms.FolderBrowserDialog downloadDirectorySetter;
-        private RoundButton setBackupDirectory;
         private System.Windows.Forms.FolderBrowserDialog backupDirectorySetter;
+#else
+        private string downloadDirectorySetter;
+        private string backupDirectorySetter;
+#endif
         private System.Windows.Forms.CheckBox chkSingleThread;
         private System.Windows.Forms.CheckBox virtualFilesystemCompatibilityCheckbox;
         private RoundButton openBackupDirectory;

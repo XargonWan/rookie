@@ -2,7 +2,11 @@
 using System;
 using System.IO;
 using System.Security.Permissions;
+#if LINUX
+using Gtk;
+#else
 using System.Windows.Forms;
+#endif
 
 namespace AndroidSideloader
 {
@@ -13,17 +17,24 @@ namespace AndroidSideloader
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
+        #if !LINUX
         [SecurityPermission(SecurityAction.Demand, Flags = SecurityPermissionFlag.ControlAppDomain)]
+        #endif
         private static void Main()
         {
-
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(CrashHandler);
+            #if LINUX
+            Application.Init();
+            form = new MainForm();
+            form.Show();
+            Application.Run();
+            #else
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             form = new MainForm();
             Application.Run(form);
-            //form.Show();
+            #endif
         }
         public static MainForm form;
 

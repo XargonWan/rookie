@@ -43,9 +43,15 @@ namespace AndroidSideloader
          */
         public static List<string[]> games = new List<string[]>();
 
+#if WINDOWS
         public static string Nouns = Path.Combine(Environment.CurrentDirectory, "nouns");
         public static string ThumbnailsFolder = Path.Combine(Environment.CurrentDirectory, "thumbnails");
         public static string NotesFolder = Path.Combine(Environment.CurrentDirectory, "notes");
+#elif LINUX
+        public static string Nouns = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME"), "rookie", "nouns");
+        public static string ThumbnailsFolder = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME"), "rookie", "thumbnails");
+        public static string NotesFolder = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME"), "rookie", "notes");
+#endif
 
         public static void UpdateNouns(string remote)
         {

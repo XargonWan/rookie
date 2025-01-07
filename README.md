@@ -16,14 +16,25 @@ Rookie will cleanup its own folder. We are not responsible if you run Rookie fro
 ## Support
 For any assistance or questions, please utilize our support channels available at [Live Chats](https://vrpirates.wiki/en/general_information/live-chats).
 
-## Build Instructions
+## Windows Build Instructions
 This project is developed using C# with WinForms targeting the .NET Framework 4.5.2. To build the project successfully in Visual Studio 2022, follow these steps:
 
 1. Clone this repository to your local machine.
 2. Ensure you have the .NET Framework 4.5.2 installed on your machine.
 3. Open the solution file (`*.sln`) in Visual Studio 2022.
 4. Sometimes the building process can fail due to the packages.config, you should migrate it to PackageReference, do this by right clicking on References in the Solution Explorer, and pressing "Migrate packages.config to PackageReference"
-5. Build the solution by selecting "Build" > "Build Solution" from the Visual Studio menu or pressing `Ctrl + Shift + B`. (or right click the solution in the solution explorer, then press Build)
+5. Define the build symbol `WINDOWS` in the project properties.
+6. Build the solution by selecting "Build" > "Build Solution" from the Visual Studio menu or pressing `Ctrl + Shift + B`. (or right click the solution in the solution explorer, then press Build)
+7. Run the application.
+
+### Linux Build Instructions
+To build the project on Linux, follow these steps:
+
+1. Clone this repository to your local machine.
+2. Ensure you have Visual Studio Code with the C# DevKit extension installed on your machine. See [Getting Started with C# in VS Code](https://code.visualstudio.com/docs/csharp/get-started) for more information.
+3. Open the solution file (`*.sln`) in Visual Studio Code.
+4. Define the `LINUX` build symbol in the project properties.
+5. Build the solution by selecting "Terminal" > "Run Build Task..." from the Visual Studio Code menu.
 6. Run the application.
 
 ## Contributing

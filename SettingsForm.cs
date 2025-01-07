@@ -63,7 +63,7 @@ namespace AndroidSideloader
             if (File.Exists($"{_settings.CurrentLogPath}"))
             {
                 string UUID = SideloaderUtilities.UUID();
-                string debugLogPath = $"{Environment.CurrentDirectory}\\{UUID}.log";
+                string debugLogPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}{UUID}.log";
                 System.IO.File.Copy("debuglog.txt", debugLogPath);
 
                 Clipboard.SetText(UUID);
@@ -80,9 +80,9 @@ namespace AndroidSideloader
                 File.Delete($"{_settings.CurrentLogPath}");
             }
 
-            if (File.Exists($"{Environment.CurrentDirectory}\\debuglog.txt"))
+            if (File.Exists($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}debuglog.txt"))
             {
-                File.Delete($"{Environment.CurrentDirectory}\\debuglog.txt");
+                File.Delete($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}debuglog.txt");
             }
         }
 
@@ -246,9 +246,9 @@ namespace AndroidSideloader
 
         private void btnOpenDebug_Click(object sender, EventArgs e)
         {
-            if (File.Exists($"{Environment.CurrentDirectory}\\debuglog.txt"))
+            if (File.Exists($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}debuglog.txt"))
             {
-                _ = Process.Start($"{Environment.CurrentDirectory}\\debuglog.txt");
+                _ = Process.Start($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}debuglog.txt");
             }
         }
 

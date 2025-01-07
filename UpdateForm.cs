@@ -34,6 +34,7 @@ namespace AndroidSideloader
 
         }
 
+#if WINDOWS
         private void UpdateForm_MouseDown(object sender, MouseEventArgs e)
         {
             mouseDown = true;
@@ -55,5 +56,28 @@ namespace AndroidSideloader
         {
             mouseDown = false;
         }
+#elif LINUX
+        private void UpdateForm_MouseDown(object sender, MouseEventArgs e)
+        {
+            mouseDown = true;
+            lastLocation = e.Location;
+        }
+
+        private void UpdateForm_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (mouseDown)
+            {
+                Location = new Point(
+                    Location.X - lastLocation.X + e.X, Location.Y - lastLocation.Y + e.Y);
+
+                Update();
+            }
+        }
+
+        private void UpdateForm_MouseUp(object sender, MouseEventArgs e)
+        {
+            mouseDown = false;
+        }
+#endif
     }
 }

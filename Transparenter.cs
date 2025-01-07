@@ -37,7 +37,12 @@ namespace AndroidSideloader
                 return;
             }
 
+#if WINDOWS
             g.DrawImage(behind, control.ClientRectangle, bounds, GraphicsUnit.Pixel);
+#elif LINUX
+            // Linux-specific drawing code
+            g.DrawImage(behind, control.ClientRectangle, bounds, GraphicsUnit.Point);
+#endif
             behind.Dispose();
         }
     }

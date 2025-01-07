@@ -4,6 +4,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using System.Windows.Forms;
 
@@ -22,6 +25,7 @@ namespace AndroidSideloader
             {
                 try
                 {
+#if WINDOWS
                     using (ManagementObject obj = new ManagementObject($"win32_process.handle='{process.Id}'"))
                     {
                         obj.Get();
@@ -32,6 +36,13 @@ namespace AndroidSideloader
                             process.Kill();
                         }
                     }
+#elif LINUX
+                    var ppid = GetParentProcessId(process.Id);
+                    if (ppid == parentProcessId)
+                    {
+                        process.Kill();
+                    }
+#endif
                 }
                 catch (Exception ex)
                 {
@@ -39,11 +50,20 @@ namespace AndroidSideloader
                 }
             }
         }
+        #if LINUX
+            private static int GetParentProcessId(int id)
+            {
+                var path = $"/proc/{id}/stat";
+                var stat = File.ReadAllText(path);
+                var parts = stat.Split(' ');
+                return int.Parse(parts[3]);
+            }
+        #endif
 
         // For custom configs that use a password
         public static void Init()
         {
-            string PwTxtPath = Path.Combine(Environment.CurrentDirectory, "rclone\\pw.txt");
+            string PwTxtPath = Path.Combine(Environment.CurrentDirectory, "rclone", "pw.txt");
             if (File.Exists(PwTxtPath))
             {
                 rclonepw = File.ReadAllText(PwTxtPath);

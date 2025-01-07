@@ -110,17 +110,27 @@ namespace AndroidSideloader
 
             try
             {
-                if (!File.Exists($"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools\\adb.exe")) //if adb is not updated, download and auto extract
+#if WINDOWS
+                string adbPath = $"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools\\adb.exe";
+#elif LINUX
+                string adbPath = $"{Environment.GetEnvironmentVariable("XDG_DATA_HOME")}/rookie/platform-tools/adb";
+#endif
+                if (!File.Exists(adbPath)) //if adb is not updated, download and auto extract
                 {
-                    if (!Directory.Exists($"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools"))
+#if WINDOWS
+                    string platformToolsPath = $"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools";
+#elif LINUX
+                    string platformToolsPath = $"{Environment.GetEnvironmentVariable("XDG_DATA_HOME")}/rookie/platform-tools";
+#endif
+                    if (!Directory.Exists(platformToolsPath))
                     {
-                        _ = Directory.CreateDirectory($"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools");
+                        _ = Directory.CreateDirectory(platformToolsPath);
                     }
 
                     currentAccessedWebsite = "github";
-                    _ = Logger.Log($"Missing adb within {Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools. Attempting to download from {currentAccessedWebsite}");
+                    _ = Logger.Log($"Missing adb within {platformToolsPath}. Attempting to download from {currentAccessedWebsite}");
                     client.DownloadFile("https://github.com/VRPirates/rookie/raw/master/dependencies.7z", "dependencies.7z");
-                    Utilities.Zip.ExtractFile(Path.Combine(Environment.CurrentDirectory, "dependencies.7z"), $"{Path.GetPathRoot(Environment.SystemDirectory)}RSL\\platform-tools");
+                    Utilities.Zip.ExtractFile(Path.Combine(Environment.CurrentDirectory, "dependencies.7z"), platformToolsPath);
                     File.Delete("dependencies.7z");
                     _ = Logger.Log($"adb download successful");
                 }
@@ -159,8 +169,13 @@ namespace AndroidSideloader
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                 _ = Logger.Log($"Checking for Local rclone...");
+#if WINDOWS
                 string dirRclone = Path.Combine(Environment.CurrentDirectory, "rclone");
                 string pathToRclone = Path.Combine(dirRclone, "rclone.exe");
+#elif LINUX
+                string dirRclone = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME"), "rookie/rclone");
+                string pathToRclone = Path.Combine(dirRclone, "rclone");
+#endif
                 if (File.Exists(pathToRclone))
                 {
                     var versionInfo = FileVersionInfo.GetVersionInfo(pathToRclone);
@@ -203,10 +218,18 @@ namespace AndroidSideloader
                     MainForm.SplashScreen.UpdateBackgroundImage(AndroidSideloader.Properties.Resources.splashimage_rclone);
 
                     string architecture = Environment.Is64BitOperatingSystem ? "amd64" : "386";
+#if WINDOWS
                     string url = $"https://downloads.rclone.org/v{wantedRcloneVersion}/rclone-v{wantedRcloneVersion}-windows-{architecture}.zip";
+#elif LINUX
+                    string url = $"https://downloads.rclone.org/v{wantedRcloneVersion}/rclone-v{wantedRcloneVersion}-linux-{architecture}.zip";
+#endif
                     if (useFallback == true) {
                         _ = Logger.Log($"Using git fallback for rclone download");
+#if WINDOWS
                         url = $"https://raw.githubusercontent.com/VRPirates/rookie/master/dep/rclone-v{wantedRcloneVersion}-windows-{architecture}.zip";
+#elif LINUX
+                        url = $"https://raw.githubusercontent.com/VRPirates/rookie/master/dep/rclone-v{wantedRcloneVersion}-linux-{architecture}.zip";
+#endif
                     }
                     _ = Logger.Log($"Downloading rclone from {url}");
 
@@ -216,7 +239,11 @@ namespace AndroidSideloader
 
                     _ = Logger.Log($"Extract {Environment.CurrentDirectory}\\rclone.zip");
                     Utilities.Zip.ExtractFile(Path.Combine(Environment.CurrentDirectory, "rclone.zip"), Environment.CurrentDirectory);
+#if WINDOWS
                     string dirExtractedRclone = Path.Combine(Environment.CurrentDirectory, $"rclone-v{wantedRcloneVersion}-windows-{architecture}");
+#elif LINUX
+                    string dirExtractedRclone = Path.Combine(Environment.CurrentDirectory, $"rclone-v{wantedRcloneVersion}-linux-{architecture}");
+#endif
                     File.Delete("rclone.zip");
                     _ = Logger.Log("rclone extracted. Moving files");
 
@@ -246,7 +273,11 @@ namespace AndroidSideloader
             }
             catch (Exception ex)
             {
+#if LINUX
                 _ = Logger.Log($"Unable to download rclone: {ex}", LogLevel.ERROR);
+                _ = FlexibleMessageBox.Show("Rclone was unable to be downloaded. Please install rclone manually using your package manager or download it from the official website.");
+                System.Diagnostics.Process.Start("zenity", "--error --text='Rclone was unable to be downloaded. Please install rclone manually using your package manager or download it from the official website.'");
+#endif
                 return false;
             }
         }

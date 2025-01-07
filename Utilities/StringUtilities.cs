@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.IO;
 
 namespace AndroidSideloader.Utilities
 {
@@ -6,6 +7,7 @@ namespace AndroidSideloader.Utilities
     {
         public static string RemoveEverythingAfterFirst(string s, string removeMe)
         {
+            s = NormalizePath(s);
             int index = s.IndexOf(removeMe);
             if (index > 0)
             {
@@ -17,6 +19,7 @@ namespace AndroidSideloader.Utilities
 
         public static string RemoveEverythingAfterLast(string s, string removeMe)
         {
+            s = NormalizePath(s);
             int index = s.LastIndexOf(removeMe);
             if (index > 0)
             {
@@ -28,6 +31,7 @@ namespace AndroidSideloader.Utilities
 
         public static string RemoveEverythingBeforeFirst(string s, string removeMe)
         {
+            s = NormalizePath(s);
             int index = s.IndexOf(removeMe);
             if (index > 0)
             {
@@ -53,6 +57,7 @@ namespace AndroidSideloader.Utilities
 
         public static string RemoveEverythingBeforeLast(string s, string removeMe)
         {
+            s = NormalizePath(s);
             int index = s.LastIndexOf(removeMe);
             if (index > 0)
             {
@@ -60,6 +65,11 @@ namespace AndroidSideloader.Utilities
             }
 
             return s;
+        }
+
+        public static string NormalizePath(string path)
+        {
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
     }
 }

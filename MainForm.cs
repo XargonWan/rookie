@@ -17,6 +17,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -84,8 +87,8 @@ namespace AndroidSideloader
             // Initialize debounce timer for search
             _debounceTimer = new System.Windows.Forms.Timer
             {
-                Interval = 1000, // 1 second delay
-                Enabled = false
+            Interval = 1000, // 1 second delay
+            Enabled = false
             };
             _debounceTimer.Tick += async (sender, e) => await RunSearch();
 
@@ -104,8 +107,15 @@ namespace AndroidSideloader
             // Focus on search text box if visible
             if (searchTextBox.Visible)
             {
-                _ = searchTextBox.Focus();
+            _ = searchTextBox.Focus();
             }
+    #if LINUX
+            settings.MainDir = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Environment.GetEnvironmentVariable("HOME"), "rookie");
+            settings.CurrentLogPath = Path.Combine(settings.MainDir, "debuglog.txt");
+    #else
+            settings.MainDir = Environment.CurrentDirectory;
+            settings.CurrentLogPath = Path.Combine(settings.MainDir, "debuglog.txt");
+    #endif
         }
 
         private void CheckCommandLineArguments()
@@ -172,7 +182,11 @@ namespace AndroidSideloader
         {
             if (string.IsNullOrEmpty(settings.CurrentLogPath))
             {
-                settings.CurrentLogPath = Path.Combine(Environment.CurrentDirectory, "debuglog.txt");
+        #if LINUX
+            settings.CurrentLogPath = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Environment.GetEnvironmentVariable("HOME"), "rookie", "debuglog.txt");
+        #else
+            settings.CurrentLogPath = Path.Combine(Environment.CurrentDirectory, "debuglog.txt");
+        #endif
             }
         }
 
@@ -251,7 +265,14 @@ namespace AndroidSideloader
                 SplashScreen.UpdateBackgroundImage(AndroidSideloader.Properties.Resources.splashimage);
             }
 
-            settings.MainDir = Environment.CurrentDirectory;
+            if (IsLinux)
+            {
+                settings.MainDir = Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Environment.GetEnvironmentVariable("HOME");
+            }
+            else
+            {
+                settings.MainDir = Environment.CurrentDirectory;
+            }
             settings.Save();
 
             if (Directory.Exists(Sideloader.TempFolder))
@@ -1282,7 +1303,7 @@ namespace AndroidSideloader
                 return;
             }
             DialogResult dialogresult2 = FlexibleMessageBox.Show($"Do you want to attempt to automatically backup any saves to {backupFolder}\\(TodaysDate)", "Attempt Game Backup?", MessageBoxButtons.YesNo);
-            packagename = !GameName.Contains(".") ? Sideloader.gameNameToPackageName(GameName) : GameName;
+            packagename = !GameName.contains(".") ? Sideloader.gameNameToPackageName(GameName) : GameName;
             if (dialogresult2 == DialogResult.Yes)
             {
                 Sideloader.BackupGame(packagename);
@@ -3751,7 +3772,12 @@ Please visit our Telegram (https://t.me/VRPirates) or Discord (https://discord.g
 
         private async Task CreateEnvironment()
         {
-            string appDataLocation = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "RSL");
+            string appDataLocation;
+    #if LINUX
+            appDataLocation = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Environment.GetEnvironmentVariable("HOME"), "RSL");
+    #else
+            appDataLocation = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "RSL");
+    #endif
             var webView2Environment = await CoreWebView2Environment.CreateAsync(userDataFolder: appDataLocation);
             await webView21.EnsureCoreWebView2Async(webView2Environment);
         }

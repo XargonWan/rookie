@@ -28,7 +28,13 @@ namespace AndroidSideloader
                 // Set default log path if not already set
                 if (string.IsNullOrEmpty(logFilePath))
                 {
+#if LINUX
+                    logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "debuglog.txt");
+#elif WINDOWS
                     logFilePath = Path.Combine(Environment.CurrentDirectory, "debuglog.txt");
+#else
+                    logFilePath = "debuglog.txt"; // Default path if neither LINUX nor WINDOWS is defined
+#endif
                 }
 
                 // Create directory if it doesn't exist

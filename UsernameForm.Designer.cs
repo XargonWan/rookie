@@ -78,7 +78,9 @@
             this.Controls.Add(this.textBox1);
             this.DataBindings.Add(new System.Windows.Forms.Binding("BackColor", global::AndroidSideloader.Properties.Settings.Default, "BackColor", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.ForeColor = System.Drawing.Color.White;
+#if WINDOWS
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+#endif
             this.MaximumSize = new System.Drawing.Size(459, 139);
             this.MinimumSize = new System.Drawing.Size(459, 139);
             this.Name = "UsernameForm";

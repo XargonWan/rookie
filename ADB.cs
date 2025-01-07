@@ -3,6 +3,9 @@ using JR.Utils.GUI.Forms;
 using System;
 using System.Diagnostics;
 using System.IO;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Windows.Forms;
 
 namespace AndroidSideloader
@@ -12,7 +15,7 @@ namespace AndroidSideloader
         private static readonly SettingsManager settings = SettingsManager.Instance;
         private static readonly Process adb = new Process();
         public static string adbFolderPath = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory), "RSL", "platform-tools");
-        public static string adbFilePath = Path.Combine(adbFolderPath, "adb.exe");
+        public static string adbFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(adbFolderPath, "adb.exe") : Path.Combine(adbFolderPath, "adb");
         public static string DeviceID = "";
         public static string package = "";
         public static ProcessOutput RunAdbCommandToString(string command)
@@ -99,7 +102,7 @@ namespace AndroidSideloader
 
             _ = Logger.Log($"Running command: {logcmd}");
 
-            adb.StartInfo.FileName = "cmd.exe";
+            adb.StartInfo.FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd.exe" : "/bin/bash";
             adb.StartInfo.RedirectStandardError = true;
             adb.StartInfo.RedirectStandardInput = true;
             adb.StartInfo.RedirectStandardOutput = true;
@@ -162,7 +165,7 @@ namespace AndroidSideloader
             {
                 using (var adb = new Process())
                 {
-                    adb.StartInfo.FileName = $@"{Path.GetPathRoot(Environment.SystemDirectory)}\Windows\System32\cmd.exe";
+                    adb.StartInfo.FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $@"{Path.GetPathRoot(Environment.SystemDirectory)}\Windows\System32\cmd.exe" : "/bin/bash";
                     adb.StartInfo.Arguments = command;
                     adb.StartInfo.RedirectStandardError = true;
                     adb.StartInfo.RedirectStandardInput = true;

@@ -6,35 +6,43 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 
 namespace AndroidSideloader.Utilities
 {
-    public class SettingsManager : IDisposable
-    {
-        private static readonly Lazy<SettingsManager> _instance = new Lazy<SettingsManager>(() => new SettingsManager());
+    #if LINUX
         private static readonly string settingsFilePath = Path.Combine(
-            Environment.CurrentDirectory,
+            Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share", "rookie"),
             "settings.json");
+    #elif WINDOWS
+        private static readonly string settingsFilePath = Path.Combine(Environment.CurrentDirectory, "settings.json");
+    #endif
+
+        public class SettingsManager : IDisposable
+        {
+        private static readonly Lazy<SettingsManager> _instance = new Lazy<SettingsManager>(() => new SettingsManager());
 
         // Custom converters for special types
         public class FontConverter : JsonConverter<Font>
         {
             public override Font ReadJson(JsonReader reader, Type objectType, Font existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
-                var jo = JObject.Load(reader);
-                string fontFamily = jo["FontFamily"]?.Value<string>() ?? "Microsoft Sans Serif";
-                float fontSize = jo["Size"]?.Value<float>() ?? 11.25f;
-                return new Font(fontFamily, fontSize);
+            var jo = JObject.Load(reader);
+            string fontFamily = jo["FontFamily"]?.Value<string>() ?? "Microsoft Sans Serif";
+            float fontSize = jo["Size"]?.Value<float>() ?? 11.25f;
+            return new Font(fontFamily, fontSize);
             }
 
             public override void WriteJson(JsonWriter writer, Font value, JsonSerializer serializer)
             {
-                writer.WriteStartObject();
-                writer.WritePropertyName("FontFamily");
-                writer.WriteValue(value.FontFamily.Name);
-                writer.WritePropertyName("Size");
-                writer.WriteValue(value.Size);
-                writer.WriteEndObject();
+            writer.WriteStartObject();
+            writer.WritePropertyName("FontFamily");
+            writer.WriteValue(value.FontFamily.Name);
+            writer.WritePropertyName("Size");
+            writer.WriteValue(value.Size);
+            writer.WriteEndObject();
             }
         }
 
@@ -42,26 +50,26 @@ namespace AndroidSideloader.Utilities
         {
             public override Color ReadJson(JsonReader reader, Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
-                var jo = JObject.Load(reader);
-                int a = jo["A"]?.Value<int>() ?? 255;
-                int r = jo["R"]?.Value<int>() ?? 0;
-                int g = jo["G"]?.Value<int>() ?? 0;
-                int b = jo["B"]?.Value<int>() ?? 0;
-                return Color.FromArgb(a, r, g, b);
+            var jo = JObject.Load(reader);
+            int a = jo["A"]?.Value<int>() ?? 255;
+            int r = jo["R"]?.Value<int>() ?? 0;
+            int g = jo["G"]?.Value<int>() ?? 0;
+            int b = jo["B"]?.Value<int>() ?? 0;
+            return Color.FromArgb(a, r, g, b);
             }
 
             public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer)
             {
-                writer.WriteStartObject();
-                writer.WritePropertyName("A");
-                writer.WriteValue(value.A);
-                writer.WritePropertyName("R");
-                writer.WriteValue(value.R);
-                writer.WritePropertyName("G");
-                writer.WriteValue(value.G);
-                writer.WritePropertyName("B");
-                writer.WriteValue(value.B);
-                writer.WriteEndObject();
+            writer.WriteStartObject();
+            writer.WritePropertyName("A");
+            writer.WriteValue(value.A);
+            writer.WritePropertyName("R");
+            writer.WriteValue(value.R);
+            writer.WritePropertyName("G");
+            writer.WriteValue(value.G);
+            writer.WritePropertyName("B");
+            writer.WriteValue(value.B);
+            writer.WriteEndObject();
             }
         }
 
@@ -142,6 +150,7 @@ namespace AndroidSideloader.Utilities
 
         private SettingsManager()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(settingsFilePath));
             Load();
             Save();
         }
@@ -152,18 +161,18 @@ namespace AndroidSideloader.Utilities
         {
             try
             {
-                var settings = new JsonSerializerSettings
-                {
-                    Formatting = Formatting.Indented,
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                };
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
 
-                var json = JsonConvert.SerializeObject(this, settings);
-                File.WriteAllText(settingsFilePath, json);
+            var json = JsonConvert.SerializeObject(this, settings);
+            File.WriteAllText(settingsFilePath, json);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving settings: {ex.Message}");
+            Console.WriteLine($"Error saving settings: {ex.Message}");
             }
         }
 
@@ -172,35 +181,36 @@ namespace AndroidSideloader.Utilities
             Debug.WriteLine("Loading settings...");
             if (!File.Exists(settingsFilePath))
             {
-                CreateDefaultSettings();
-                return;
+            CreateDefaultSettings();
+            return;
             }
 
             try
             {
-                var json = File.ReadAllText(settingsFilePath);
-                var settings = new JsonSerializerSettings
+            var json = File.ReadAllText(settingsFilePath);
+            var settings = new JsonSerializerSettings
+            {
+                Error = (sender, args) =>
                 {
-                    Error = (sender, args) =>
-                    {
-                        Debug.WriteLine($"Error deserializing setting: {args.ErrorContext.Error.Message}");
-                        args.ErrorContext.Handled = true;
-                    }
-                };
+                Debug.WriteLine($"Error deserializing setting: {args.ErrorContext.Error.Message}");
+                args.ErrorContext.Handled = true;
+                }
+            };
 
-                JsonConvert.PopulateObject(json, this, settings);
+            JsonConvert.PopulateObject(json, this, settings);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error loading settings: {ex.Message}");
-                CreateDefaultSettings();
+            Debug.WriteLine($"Error loading settings: {ex.Message}");
+            CreateDefaultSettings();
             }
         }
 
         private void CreateDefaultSettings()
         {
-            FontStyle = new Font("Microsoft Sans Serif", 11.25f);
-            BigFontStyle = new Font("Microsoft Sans Serif", 14f);
+            string defaultFontFamily = Environment.OSVersion.Platform == PlatformID.Unix ? "DejaVu Sans" : "Microsoft Sans Serif";
+            FontStyle = new Font(defaultFontFamily, 11.25f);
+            BigFontStyle = new Font(defaultFontFamily, 14f);
             FontColor = Color.White;
             ComboBoxColor = Color.FromArgb(25, 25, 25);
             SubButtonColor = Color.FromArgb(25, 25, 25);
@@ -262,7 +272,7 @@ namespace AndroidSideloader.Utilities
             HideAdultContent = false;
             ListViewColumnWidths = new Dictionary<string, int[]>
             {
-                { "gamesListView", new[] { 158, 244, 87, 75, 145, 66, 80 } }
+            { "gamesListView", new[] { 158, 244, 87, 75, 145, 66, 80 } }
             };
             MainWindowLocationX = 0;
             MainWindowLocationY = 0;
@@ -278,5 +288,5 @@ namespace AndroidSideloader.Utilities
             FontStyle?.Dispose();
             BigFontStyle?.Dispose();
         }
-    }
+        }
 }

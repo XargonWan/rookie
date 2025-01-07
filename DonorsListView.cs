@@ -141,23 +141,29 @@ namespace AndroidSideloader
 
         private void DonorsListViewForm_MouseDown(object sender, MouseEventArgs e)
         {
+#if WINDOWS
             mouseDown = true;
             lastLocation = e.Location;
+#endif
         }
 
         private void DonorsListViewForm_MouseMove(object sender, MouseEventArgs e)
         {
+#if WINDOWS
             if (mouseDown)
             {
                 Location = new Point(
                     Location.X - lastLocation.X + e.X, Location.Y - lastLocation.Y + e.Y);
                 Update();
             }
+#endif
         }
 
         private void DonorsListViewForm_MouseUp(object sender, MouseEventArgs e)
         {
+#if WINDOWS
             mouseDown = false;
+#endif
         }
     }
 }

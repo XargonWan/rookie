@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+#if LINUX
+using System.Runtime.InteropServices;
+#endif
 using System.Windows.Forms;
 
 namespace JR.Utils.GUI.Forms
@@ -756,7 +759,11 @@ namespace JR.Utils.GUI.Forms
                 try
                 {
                     Cursor.Current = Cursors.WaitCursor;
+#if WINDOWS
                     _ = Process.Start(e.LinkText);
+#elif LINUX
+                    _ = Process.Start("xdg-open", e.LinkText);
+#endif
                 }
                 catch (Exception)
                 {
