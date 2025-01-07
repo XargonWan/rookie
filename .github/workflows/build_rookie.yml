@@ -1,0 +1,143 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# This workflow will build, test, sign and package a WPF or Windows Forms desktop application
+# built on .NET Core.
+# To learn how to migrate your existing application to .NET Core,
+# refer to https://docs.microsoft.com/en-us/dotnet/desktop-wpf/migration/convert-project-from-net-framework
+#
+# To configure this workflow:
+#
+# 1. Configure environment variables
+# GitHub sets default environment variables for every workflow run.
+# Replace the variables relative to your project in the "env" section below.
+#
+# 2. Signing
+# Generate a signing certificate in the Windows Application
+# Packaging Project or add an existing signing certificate to the project.
+# Next, use PowerShell to encode the .pfx file using Base64 encoding
+# by running the following Powershell script to generate the output string:
+#
+# $pfx_cert = Get-Content '.\SigningCertificate.pfx' -Encoding Byte
+# [System.Convert]::ToBase64String($pfx_cert) | Out-File 'SigningCertificate_Encoded.txt'
+#
+# Open the output file, SigningCertificate_Encoded.txt, and copy the
+# string inside. Then, add the string to the repo as a GitHub secret
+# and name it "Base64_Encoded_Pfx."
+# For more information on how to configure your signing certificate for
+# this workflow, refer to https://github.com/microsoft/github-actions-for-desktop-apps#signing
+#
+# Finally, add the signing certificate password to the repo as a secret and name it "Pfx_Key".
+# See "Build the Windows Application Packaging project" below to see how the secret is used.
+#
+# For more information on GitHub Actions, refer to https://github.com/features/actions
+# For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
+# refer to https://github.com/microsoft/github-actions-for-desktop-apps
+
+name: Build Rookie
+
+on:
+  push:
+    branches: [ "master", "feat/linux" ]
+  pull_request:
+    branches: [ "master", "feat/linux" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    env:
+      Solution_Name: Rookie.sln
+      Test_Project_Path: Rookie.Tests\Rookie.Tests.csproj
+      Wap_Project_Directory: Rookie.Package
+      Wap_Project_Path: Rookie.Package\Rookie.Package.wapproj
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+    - name: Build
+      run: ./build_windows.cmd ${{ matrix.configuration }}
+    - name: Test
+      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish ${{ env.Wap_Project_Path }} --configuration ${{ matrix.configuration }} --output ./output
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Rookie-Windows-${{ matrix.configuration }}
+        path: ./output
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    env:
+      Solution_Name: Rookie.sln
+      Test_Project_Path: Rookie.Tests/Rookie.Tests.csproj
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+    - name: Build
+      run: ./build_linux.sh ${{ matrix.configuration }}
+    - name: Test
+      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --output ./output
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Rookie-Linux-${{ matrix.configuration }}
+        path: ./output
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.0
+        release_name: Release v1.0.0
+        draft: false
+        prerelease: false
+    - name: Upload Windows Artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./output/Rookie-Windows-Release.zip
+        asset_name: Rookie-Windows-Release.zip
+        asset_content_type: application/zip
+    - name: Upload Linux Artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./output/Rookie-Linux-Release.zip
+        asset_name: Rookie-Linux-Release.zip
+        asset_content_type: application/zip
