@@ -73,7 +73,7 @@ jobs:
     - name: Publish
       run: dotnet publish ${{ env.Wap_Project_Path }} --configuration ${{ matrix.configuration }} --output ./output
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Rookie-Windows-${{ matrix.configuration }}
         path: ./output
@@ -104,7 +104,7 @@ jobs:
     - name: Publish
       run: dotnet publish ${{ env.Solution_Name }} --configuration ${{ matrix.configuration }} --output ./output
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Rookie-Linux-${{ matrix.configuration }}
         path: ./output
